@@ -1,6 +1,6 @@
 # Ásd ki a milliárdokat! 🪏💰
 
-[![Test & deploy](https://github.com/tibortoth8807/asd-ki-a-milliardokat/actions/workflows/deploy.yml/badge.svg)](https://github.com/tibortoth8807/asd-ki-a-milliardokat/actions/workflows/deploy.yml)
+[![Test & deploy](https://github.com/tibortoth8807/DigUpTheBillions/actions/workflows/deploy.yml/badge.svg)](https://github.com/tibortoth8807/DigUpTheBillions/actions/workflows/deploy.yml)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Canvas 2D](https://img.shields.io/badge/Canvas_2D-no_engine-orange)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
