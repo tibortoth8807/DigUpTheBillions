@@ -173,3 +173,5 @@ body.hurry .timer-label b { color: var(--red); animation: blink .6s infinite; }
 .fps .touch-only { display: none; }
 .fps.touch .touch-only { display: block; }
 .fps.touch .desktop-only { display: none; }
+.fps.drag-look .fps-canvas { cursor: grab; }
+.fps.drag-look .fps-canvas:active { cursor: grabbing; }

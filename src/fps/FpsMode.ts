@@ -62,6 +62,10 @@ export class FpsMode {
   private walkPhase = 0;
   private locked = false;
   private pauseVisible = false;
+  /** 'lock' = classic FPS mouse (pointer lock); 'drag' = fallback when the browser refuses pointer lock. */
+  private lookMode: 'lock' | 'drag' = 'lock';
+  private dragging = false;
+  private dragDistance = 0;
   private readonly touch = matchMedia('(pointer: coarse)').matches;
 
   private readonly marker: THREE.LineLoop;
@@ -122,7 +126,7 @@ export class FpsMode {
 
   /** The game clock stops while the desktop player is in the pause screen (pointer not locked). */
   get paused(): boolean {
-    return this.pauseVisible || (!this.touch && !this.locked);
+    return this.pauseVisible || (!this.touch && this.lookMode === 'lock' && !this.locked);
   }
 
   start(game: Game): void {
@@ -144,8 +148,13 @@ export class FpsMode {
     this.swingStart = -1;
     this.keys.clear();
 
-    // start at the south fence, looking north
-    this.camera.position.set(0, EYE_HEIGHT, this.world.halfD + 0.5);
+    // start at the south fence, looking north - in front of the free (grass) column closest to the middle
+    const lastRow = game.forest.rows - 1;
+    const columns = Array.from({ length: game.forest.cols }, (_, x) => x)
+      .filter((x) => isDiggable(game.forest, x, lastRow))
+      .sort((a, b) => Math.abs(a - (game.forest.cols - 1) / 2) - Math.abs(b - (game.forest.cols - 1) / 2));
+    const startX = columns.length > 0 ? tileCenter(game.forest, { x: columns[0], y: lastRow }).x : 0;
+    this.camera.position.set(startX, EYE_HEIGHT, this.world.halfD + 0.5);
     this.yaw = 0;
     this.pitch = -0.12;
 
@@ -633,31 +642,51 @@ export class FpsMode {
 
     this.on(this.root.querySelector('#fps-resume')!, 'click', () => {
       this.sounds.unlock();
-      if (this.touch) {
+      if (this.touch || this.lookMode === 'drag') {
         this.showPause(false);
       } else {
-        void canvas.requestPointerLock();
+        this.requestLock();
       }
     });
     this.on(this.root.querySelector('#fps-menu')!, 'click', () => this.ui.exitToMenu());
 
     this.on(document, 'pointerlockchange', () => {
       this.locked = document.pointerLockElement === canvas;
-      if (this.game && this.game.status === 'playing') this.showPause(!this.locked);
+      if (this.lookMode === 'lock' && this.game && this.game.status === 'playing') this.showPause(!this.locked);
     });
+    this.on(document, 'pointerlockerror', () => this.useDragLook());
 
     this.on(canvas, 'mousedown', (e) => {
-      if (!this.locked) {
-        if (!this.touch && this.game?.status === 'playing') void canvas.requestPointerLock();
+      const m = e as MouseEvent;
+      if (this.lookMode === 'drag') {
+        if (m.button === 0) {
+          this.dragging = true;
+          this.dragDistance = 0;
+        }
         return;
       }
-      if ((e as MouseEvent).button === 0) this.act();
+      if (!this.locked) {
+        if (!this.touch && this.game?.status === 'playing') this.requestLock();
+        return;
+      }
+      if (m.button === 0) this.act();
+    });
+
+    this.on(window, 'mouseup', () => {
+      if (this.lookMode !== 'drag' || !this.dragging) return;
+      this.dragging = false;
+      // a click without dragging digs, a drag only looks around
+      if (this.dragDistance < 6 && !this.pauseVisible) this.act();
     });
 
     this.on(document, 'mousemove', (e) => {
-      if (!this.locked) return;
       const m = e as MouseEvent;
-      this.look(m.movementX * 0.0022, m.movementY * 0.0022);
+      if (this.locked) {
+        this.look(m.movementX * 0.0022, m.movementY * 0.0022);
+      } else if (this.lookMode === 'drag' && this.dragging) {
+        this.dragDistance += Math.abs(m.movementX) + Math.abs(m.movementY);
+        this.look(m.movementX * 0.004, m.movementY * 0.004);
+      }
     });
 
     this.on(window, 'keydown', (e) => {
@@ -667,6 +696,9 @@ export class FpsMode {
       if (k.code === 'KeyE' || k.code === 'Space') {
         k.preventDefault();
         this.act();
+      }
+      if (k.code === 'Escape' && this.lookMode === 'drag' && this.game?.status === 'playing') {
+        this.showPause(!this.pauseVisible);
       }
       if (k.code === 'KeyM' || k.code === 'Tab') {
         k.preventDefault();
@@ -742,6 +774,36 @@ export class FpsMode {
     });
     this.on(this.root.querySelector('#touch-act')!, 'click', () => this.act());
     this.on(this.root.querySelector('#fps-clues')!, 'click', () => this.root.querySelector('#fps-clues')!.classList.toggle('expanded'));
+  }
+
+  /**
+   * Pointer lock is refused in some places (sandboxed iframes, some browser settings), sometimes silently.
+   * If it hasn't kicked in shortly after the click, switch to drag-to-look instead of leaving the player stuck.
+   */
+  private requestLock(): void {
+    const canvas = this.renderer.domElement;
+    if (!canvas.requestPointerLock) {
+      this.useDragLook();
+      return;
+    }
+    try {
+      const result = canvas.requestPointerLock() as unknown;
+      if (result instanceof Promise) result.catch(() => this.useDragLook());
+    } catch {
+      this.useDragLook();
+      return;
+    }
+    window.setTimeout(() => {
+      if (!this.locked && this.lookMode === 'lock' && this.pauseVisible) this.useDragLook();
+    }, 400);
+  }
+
+  private useDragLook(): void {
+    if (this.lookMode === 'drag') return;
+    this.lookMode = 'drag';
+    this.root.classList.add('drag-look');
+    this.showPause(false);
+    this.ui.toast('🖱️ Körülnézés: húzd az egeret lenyomott gombbal · kattintás: ásás · Esc: szünet');
   }
 
   private look(dx: number, dy: number): void {

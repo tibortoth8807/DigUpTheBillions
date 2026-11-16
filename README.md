@@ -1,6 +1,6 @@
 # Ásd ki a milliárdokat! 🪏💰
 
-[![Test & deploy](https://github.com/tibortoth8807/asd-ki-a-milliardokat/actions/workflows/deploy.yml/badge.svg)](https://github.com/tibortoth8807/asd-ki-a-milliardokat/actions/workflows/deploy.yml)
+[![Test & deploy](https://github.com/tibortoth8807/DigUpTheBillions/actions/workflows/deploy.yml/badge.svg)](https://github.com/tibortoth8807/DigUpTheBillions/actions/workflows/deploy.yml)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
 ![Canvas 2D](https://img.shields.io/badge/Canvas_2D-no_engine-orange)
 ![Three.js](https://img.shields.io/badge/Three.js-WebGL_3D-black?logo=threedotjs)
@@ -40,7 +40,7 @@ if time runs out, their jeep rolls in with flashing lights and a light beam show
 |---|---|---|
 | ![tools](docs/fps-tools.png) | ![jeep](docs/fps-jeep.png) | ![mobile](docs/fps-mobile.png) |
 
-Controls: **mouse** look (pointer lock) · **WASD** walk · **Shift** run · **click / E** dig · **1-2-3** tools · **M / Tab** map · **Esc** pause (the clock stops).
+Controls: **mouse** look (pointer lock; if the browser refuses it, e.g. in a sandboxed iframe, the game falls back to drag-to-look) · **WASD** walk · **Shift** run · **click / E** dig · **1-2-3** tools · **M / Tab** map · **Esc** pause (the clock stops).
 On phones: virtual stick, drag to look, big **ÁS** button.
 
 ## Tech
