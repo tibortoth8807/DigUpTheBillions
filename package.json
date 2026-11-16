@@ -1,0 +1,18 @@
+{
+  "name": "asd-ki-a-milliardokat",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Parody browser game: dig up the buried billions before the squad arrives. Fictional story and characters.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "~5.9.2",
+    "vite": "^7.1.0"
+  }
+}

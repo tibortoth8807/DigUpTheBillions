@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#14201a" />
+    <title>Ásd ki a milliárdokat! – paródia játék</title>
+    <meta name="description" content="Egy kitalált nyugalmazott miniszter elásta a milliárdokat az erdőben. Itt a térkép – ásd ki, mielőtt a Különítmény odaér! Paródia, kitalált szereplőkkel." />
+    <meta property="og:title" content="Ásd ki a milliárdokat!" />
+    <meta property="og:description" content="Térkép, ásó, fémkereső és egy kutya. Te megtalálod, mielőtt a Különítmény odaér?" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <h1>Ásd ki a <span>milliárdokat!</span></h1>
+        <div class="topbar-actions">
+          <button type="button" id="btn-help" class="icon-btn" title="Szabályok">?</button>
+          <button type="button" id="btn-sound" class="icon-btn" title="Hang be/ki (M)">🔊</button>
+        </div>
+      </header>
+
+      <section class="hud" aria-live="polite">
+        <div class="hud-item" title="Ásások"><span class="hud-icon">🪏</span><b id="hud-digs">6</b></div>
+        <div class="hud-item" title="Fémkereső mérések"><span class="hud-icon">📡</span><b id="hud-detectors">3</b></div>
+        <div class="hud-item" title="Kutya"><span class="hud-icon">🐕</span><b id="hud-dogs">1</b></div>
+        <div class="timer">
+          <div class="timer-label"><span>🚙 A Különítmény</span><b id="hud-time">75</b><span>mp múlva ideér</span></div>
+          <div class="timer-track"><div class="timer-fill" id="timer-fill"></div><div class="timer-car" id="timer-car">🚙</div></div>
+        </div>
+      </section>
+
+      <main class="layout">
+        <div class="board">
+          <canvas id="forest" aria-label="Az erdő térképe"></canvas>
+          <div class="toast" id="toast" role="status"></div>
+        </div>
+
+        <aside class="side">
+          <div class="parchment">
+            <h2>A térkép</h2>
+            <p class="parchment-intro">Kézzel írt cetli, kávéfolttal. Ennyit lehetett kisilabizálni:</p>
+            <ol id="clues"></ol>
+            <p class="parchment-note">1 lépés = egy mező vízszintesen vagy függőlegesen (átlósan 2 lépés). Észak felfelé van.</p>
+          </div>
+
+          <div class="tools" role="toolbar" aria-label="Eszközök">
+            <button type="button" class="tool active" data-tool="dig"><span>🪏</span>Ásás<small>1</small></button>
+            <button type="button" class="tool" data-tool="detector"><span>📡</span>Fémkereső<small>2</small></button>
+            <button type="button" class="tool" data-tool="dog"><span>🐕</span>Morzsi<small>3</small></button>
+          </div>
+          <p class="tool-hint" id="tool-hint">Kattints egy mezőre az ásáshoz.</p>
+          <ul class="legend">
+            <li><i style="background:#ef4444"></i>Forró – max. 1 lépés</li>
+            <li><i style="background:#f97316"></i>Meleg – 2 lépés</li>
+            <li><i style="background:#facc15"></i>Langyos – 3-4 lépés</li>
+            <li><i style="background:#60a5fa"></i>Hideg – messze</li>
+          </ul>
+        </aside>
+      </main>
+
+      <footer class="footer">
+        Paródia. A történet, a szereplők, a helyszín és a „Különítmény” kitalált; valós személyekkel vagy eseményekkel való bármilyen egyezés a véletlen műve.
+      </footer>
+    </div>
+
+    <!-- start screen -->
+    <div class="overlay" id="start-screen">
+      <div class="card">
+        <svg class="portrait" viewBox="0 0 200 200" aria-hidden="true">
+          <!-- Dr. Ásó Bendegúz (fictional) -->
+          <circle cx="100" cy="100" r="96" fill="#2b4a2f" />
+          <path d="M40 200 Q50 140 100 135 Q150 140 160 200 Z" fill="#2c3e50" />
+          <path d="M88 136 L100 175 L112 136 Z" fill="#fdfdfd" />
+          <path d="M96 140 L104 140 L106 175 L100 185 L94 175 Z" fill="#b03a2e" />
+          <ellipse cx="100" cy="92" rx="40" ry="46" fill="#f2c9a0" />
+          <path d="M60 80 Q62 52 100 48 Q138 52 140 80 Q132 64 118 66 Q100 58 84 66 Q68 64 60 80 Z" fill="#8a8f96" />
+          <ellipse cx="60" cy="96" rx="7" ry="11" fill="#e8b98e" />
+          <ellipse cx="140" cy="96" rx="7" ry="11" fill="#e8b98e" />
+          <circle cx="84" cy="92" r="11" fill="none" stroke="#333" stroke-width="3" />
+          <circle cx="116" cy="92" r="11" fill="none" stroke="#333" stroke-width="3" />
+          <line x1="95" y1="92" x2="105" y2="92" stroke="#333" stroke-width="3" />
+          <circle cx="84" cy="93" r="3" fill="#333" />
+          <circle cx="116" cy="93" r="3" fill="#333" />
+          <path d="M80 112 Q100 104 120 112 Q110 120 100 116 Q90 120 80 112 Z" fill="#6b6f74" />
+          <path d="M88 124 Q100 130 112 124" stroke="#a0522d" stroke-width="3" fill="none" stroke-linecap="round" />
+          <circle cx="76" cy="108" r="6" fill="#f5a3a3" opacity="0.5" />
+          <circle cx="124" cy="108" r="6" fill="#f5a3a3" opacity="0.5" />
+          <!-- shovel -->
+          <rect x="150" y="70" width="7" height="90" rx="3" fill="#8b5a2b" transform="rotate(18 153 115)" />
+          <path d="M160 150 L184 156 L178 182 L164 186 L154 174 Z" fill="#c0c6cc" />
+        </svg>
+        <h2>Ásd ki a milliárdokat!</h2>
+        <p>
+          <b>Dr. Ásó Bendegúz</b> nyugalmazott tárca nélküli miniszter (kitalált személy) egy esős éjszakán
+          „befektetett” a Bükkös-erdőbe. A szalmazsák üres, a térkép viszont nálad van.
+        </p>
+        <p>Ásd ki a milliárdokat, mielőtt a <b>Különítmény</b> terepjárója odaér! Minden ásás zajjal jár – és időbe kerül.</p>
+        <div class="card-actions">
+          <button type="button" class="btn primary" id="btn-daily">Napi térkép</button>
+          <button type="button" class="btn" id="btn-random">Véletlen térkép</button>
+        </div>
+        <p class="small">Napi térkép: ma mindenki ugyanazt az erdőt kapja – hasonlítsd össze az eredményed!</p>
+      </div>
+    </div>
+
+    <!-- help -->
+    <div class="overlay hidden" id="help-screen">
+      <div class="card">
+        <h2>Szabályok</h2>
+        <ul class="rules">
+          <li>🗺️ A <b>térkép</b> nyomai együtt csak néhány mezőt hagynak – ott van a kincs.</li>
+          <li>🪏 <b>Ásás</b>: 6 próbálkozás. Minden mellé ásás 3 mp-cel közelebb hozza a Különítményt.</li>
+          <li>📡 <b>Fémkereső</b>: 3 mérés, megmutatja, milyen messze vagy (forró / meleg / langyos / hideg).</li>
+          <li>🐕 <b>Morzsi</b>: egyszer leül a kincs közelébe (1-2 lépésre) – de nem pont rá.</li>
+          <li>⏱️ 75 másodperced van. A megmaradt eszközök és idő pontot érnek.</li>
+        </ul>
+        <p class="small">Billentyűk: 1 ásás · 2 fémkereső · 3 kutya · M hang</p>
+        <div class="card-actions">
+          <button type="button" class="btn primary" id="btn-help-close">Értem</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- result -->
+    <div class="overlay hidden" id="result-screen">
+      <div class="card">
+        <div class="result-emoji" id="result-emoji">💰</div>
+        <h2 id="result-title">Megvan!</h2>
+        <p id="result-text"></p>
+        <div class="result-stats" id="result-stats"></div>
+        <pre class="share-preview" id="share-preview"></pre>
+        <div class="card-actions">
+          <button type="button" class="btn primary" id="btn-share">Megosztás</button>
+          <button type="button" class="btn" id="btn-again">Új térkép</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
