@@ -192,7 +192,9 @@ export function drawOak(ctx: Ctx, x: number, y: number, t: number, sway: number)
 }
 
 export function drawHole(ctx: Ctx, x: number, y: number, t: number, progress: number): void {
-  const p = Math.min(1, progress);
+  // Clamp: the click timestamp can be a few ms newer than the frame timestamp.
+  const p = Math.max(0, Math.min(1, progress));
+  if (p === 0) return;
   const cx = x + t / 2;
   const cy = y + t * 0.56;
   // dirt mound

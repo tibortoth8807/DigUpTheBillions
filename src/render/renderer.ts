@@ -183,7 +183,7 @@ export class Renderer {
     // treasure
     const t = game.treasure;
     if (this.treasureStart > 0 && now >= this.treasureStart) {
-      drawTreasure(ctx, t.x * TILE, t.y * TILE - 6, TILE, Math.min(1, (now - this.treasureStart) / 500), now);
+      drawTreasure(ctx, t.x * TILE, t.y * TILE - 6, TILE, clamp01((now - this.treasureStart) / 500), now);
     } else if (this.revealStart > 0) {
       const blink = 0.5 + Math.sin(now / 200) * 0.5;
       ctx.save();
@@ -195,7 +195,7 @@ export class Renderer {
 
     // dog sits on its mark
     if (game.dogMark) {
-      const arrive = Math.min(1, (now - this.dogStart) / 600);
+      const arrive = clamp01((now - this.dogStart) / 600);
       const fromX = -1;
       const dx = fromX + (game.dogMark.x - fromX) * easeOut(arrive);
       drawDog(ctx, dx * TILE, game.dogMark.y * TILE, TILE, now);
@@ -204,7 +204,7 @@ export class Renderer {
     // detector pulses
     for (let i = this.pulses.length - 1; i >= 0; i--) {
       const pulse = this.pulses[i];
-      const age = (now - pulse.start) / 1200;
+      const age = Math.max(0, (now - pulse.start) / 1200);
       if (age >= 1) {
         this.pulses.splice(i, 1);
         continue;
@@ -532,3 +532,4 @@ export class Renderer {
 }
 
 const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
+const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
