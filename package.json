@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Parody browser game: dig up the buried billions before the squad arrives. Fictional story and characters.",
+  "description": "Parody browser game: dig up the buried billions before the squad arrives – 2D map view or 3D first-person (Three.js). Fictional story and characters.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -11,8 +11,12 @@
     "test": "tsx --test tests/*.test.ts"
   },
   "devDependencies": {
+    "@types/three": "^0.187.0",
     "tsx": "^4.20.0",
     "typescript": "~5.9.2",
     "vite": "^7.1.0"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
   }
 }

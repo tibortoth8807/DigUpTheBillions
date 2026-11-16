@@ -21,19 +21,19 @@
       </header>
 
       <section class="hud" aria-live="polite">
-        <div class="hud-item" title="Ásások"><span class="hud-icon">🪏</span><b id="hud-digs">6</b></div>
-        <div class="hud-item" title="Fémkereső mérések"><span class="hud-icon">📡</span><b id="hud-detectors">3</b></div>
-        <div class="hud-item" title="Kutya"><span class="hud-icon">🐕</span><b id="hud-dogs">1</b></div>
+        <div class="hud-item" title="Ásások"><span class="hud-icon">🪏</span><b id="hud-digs" data-hud="digs">6</b></div>
+        <div class="hud-item" title="Fémkereső mérések"><span class="hud-icon">📡</span><b id="hud-detectors" data-hud="detectors">3</b></div>
+        <div class="hud-item" title="Kutya"><span class="hud-icon">🐕</span><b id="hud-dogs" data-hud="dogs">1</b></div>
         <div class="timer">
-          <div class="timer-label"><span>🚙 A Különítmény</span><b id="hud-time">75</b><span>mp múlva ideér</span></div>
-          <div class="timer-track"><div class="timer-fill" id="timer-fill"></div><div class="timer-car" id="timer-car">🚙</div></div>
+          <div class="timer-label"><span>🚙 A Különítmény</span><b id="hud-time" data-hud="time">75</b><span>mp múlva ideér</span></div>
+          <div class="timer-track"><div class="timer-fill" id="timer-fill" data-hud="fill"></div><div class="timer-car" id="timer-car" data-hud="car">🚙</div></div>
         </div>
       </section>
 
       <main class="layout">
         <div class="board">
           <canvas id="forest" aria-label="Az erdő térképe"></canvas>
-          <div class="toast" id="toast" role="status"></div>
+          <div class="toast" id="toast" role="status" data-toast></div>
         </div>
 
         <aside class="side">
@@ -62,6 +62,60 @@
       <footer class="footer">
         Paródia. A történet, a szereplők, a helyszín és a „Különítmény” kitalált; valós személyekkel vagy eseményekkel való bármilyen egyezés a véletlen műve.
       </footer>
+    </div>
+
+    <!-- 3D first-person view -->
+    <div class="fps hidden" id="fps-root">
+      <div id="fps-canvas-host"></div>
+
+      <div class="fps-top">
+        <div class="fps-timer">
+          <div class="timer-label"><span>🚙 A Különítmény</span><b data-hud="time">75</b><span>mp múlva ideér</span></div>
+          <div class="timer-track"><div class="timer-fill" data-hud="fill"></div><div class="timer-car" data-hud="car">🚙</div></div>
+        </div>
+        <div class="compass" aria-hidden="true"><div class="compass-strip" id="compass-strip"></div><div class="compass-needle"></div></div>
+      </div>
+
+      <div class="crosshair" aria-hidden="true"></div>
+      <div class="fps-prompt" id="fps-prompt"></div>
+      <div class="fps-toast" data-toast role="status"></div>
+
+      <div class="fps-clues" id="fps-clues">
+        <h3>A térkép <small>(M)</small></h3>
+        <ol></ol>
+        <p>1 lépés = egy mező (3 m) – a földön halvány rács mutatja.</p>
+      </div>
+
+      <div class="fps-tools">
+        <button type="button" class="fps-tool active" data-tool="dig"><span>🪏</span><b data-hud="digs">6</b><small>1</small></button>
+        <button type="button" class="fps-tool" data-tool="detector"><span>📡</span><b data-hud="detectors">3</b><small>2</small></button>
+        <button type="button" class="fps-tool" data-tool="dog"><span>🐕</span><b data-hud="dogs">1</b><small>3</small></button>
+      </div>
+
+      <div class="touch-stick" id="touch-stick"><div class="knob"></div></div>
+      <button type="button" class="touch-act" id="touch-act">ÁS</button>
+
+      <div class="fps-pause hidden" id="fps-pause">
+        <div class="card">
+          <h2>🌲 Terepen</h2>
+          <p>A kerítés déli oldalán állsz, északra nézel. Keresd meg a térkép tereptárgyait – a feliratok segítenek.</p>
+          <ul class="rules desktop-only">
+            <li>🖱️ Egér: körülnézés · <b>WASD</b>: séta · <b>Shift</b>: futás</li>
+            <li>🪏 <b>Klikk / E</b>: ásás oda, ahová a keret mutat</li>
+            <li>📡 <b>2</b>: fémkereső · 🐕 <b>3</b>: Morzsi · <b>M</b>: térkép</li>
+            <li>⏸️ <b>Esc</b>: szünet (ilyenkor áll az idő)</li>
+          </ul>
+          <ul class="rules touch-only">
+            <li>🕹️ Bal kör: séta · húzd az ujjad a képen: körülnézés</li>
+            <li>🪏 <b>ÁS</b> gomb: ásás oda, ahová a keret mutat</li>
+            <li>📡🐕 Lent az eszközök: fémkereső és Morzsi</li>
+          </ul>
+          <div class="card-actions">
+            <button type="button" class="btn primary" id="fps-resume">Indulás</button>
+            <button type="button" class="btn" id="fps-menu">Menü</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- start screen -->
@@ -96,6 +150,10 @@
           „befektetett” a Bükkös-erdőbe. A szalmazsák üres, a térkép viszont nálad van.
         </p>
         <p>Ásd ki a milliárdokat, mielőtt a <b>Különítmény</b> terepjárója odaér! Minden ásás zajjal jár – és időbe kerül.</p>
+        <div class="mode-switch" role="radiogroup" aria-label="Nézet">
+          <button type="button" class="mode active" data-mode="2d" role="radio" aria-checked="true">🗺️ Térképről<small>2D, felülnézet</small></button>
+          <button type="button" class="mode" data-mode="3d" role="radio" aria-checked="false">🌲 Terepen<small>3D, belső nézet</small></button>
+        </div>
         <div class="card-actions">
           <button type="button" class="btn primary" id="btn-daily">Napi térkép</button>
           <button type="button" class="btn" id="btn-random">Véletlen térkép</button>
@@ -115,7 +173,7 @@
           <li>🐕 <b>Morzsi</b>: egyszer leül a kincs közelébe (1-2 lépésre) – de nem pont rá.</li>
           <li>⏱️ 75 másodperced van. A megmaradt eszközök és idő pontot érnek.</li>
         </ul>
-        <p class="small">Billentyűk: 1 ásás · 2 fémkereső · 3 kutya · M hang</p>
+        <p class="small">2D: 1 ásás · 2 fémkereső · 3 kutya · M hang<br />3D: WASD / nyilak mozgás · egér nézelődés · Shift futás · klikk vagy E ásás · 1-2-3 eszköz · M / Tab térkép · Esc szünet</p>
         <div class="card-actions">
           <button type="button" class="btn primary" id="btn-help-close">Értem</button>
         </div>
@@ -133,6 +191,7 @@
         <div class="card-actions">
           <button type="button" class="btn primary" id="btn-share">Megosztás</button>
           <button type="button" class="btn" id="btn-again">Új térkép</button>
+          <button type="button" class="btn" id="btn-menu">Menü</button>
         </div>
       </div>
     </div>

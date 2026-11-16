@@ -1,5 +1,5 @@
 /** Tiny synthesized sound effects with the Web Audio API - no audio files to license or download. */
-export type SoundName = 'dig' | 'junk' | 'beep' | 'bark' | 'win' | 'lose' | 'click';
+export type SoundName = 'dig' | 'junk' | 'beep' | 'bark' | 'win' | 'lose' | 'click' | 'siren' | 'swing';
 
 export class Sounds {
   muted = false;
@@ -46,6 +46,14 @@ export class Sounds {
       case 'win':
         [523, 659, 784, 1047].forEach((f, i) => this.tone(f, now + i * 0.11, 0.22, 'triangle', 0.18));
         this.noise(now + 0.45, 0.4, 3000, 0.08);
+        break;
+      case 'siren':
+        // distant two-tone, quieter than the final one
+        this.tone(780, now, 0.22, 'square', 0.03);
+        this.tone(620, now + 0.25, 0.22, 'square', 0.03);
+        break;
+      case 'swing':
+        this.noise(now, 0.12, 1800, 0.12);
         break;
       case 'lose':
         // two-tone siren
