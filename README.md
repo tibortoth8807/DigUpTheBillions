@@ -8,6 +8,8 @@
 ![Web Audio](https://img.shields.io/badge/Web_Audio-synthesized-blueviolet)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
+### ▶️ [Play it in the browser](https://tibortoth8807.github.io/DigUpTheBillions/)
+
 **A satirical browser puzzle game (in Hungarian):** a fictional retired minister buried his "investments" in the forest.
 You have his scribbled map, a shovel, a metal detector and a dog – dig up the billions before the squad's jeep arrives.
 
@@ -40,7 +42,7 @@ if time runs out, their jeep rolls in with flashing lights and a light beam show
 |---|---|---|
 | ![tools](docs/fps-tools.png) | ![jeep](docs/fps-jeep.png) | ![mobile](docs/fps-mobile.png) |
 
-Controls: **mouse** look (pointer lock; if the browser refuses it, e.g. in a sandboxed iframe, the game falls back to drag-to-look) · **WASD** walk · **Shift** run · **click / E** dig · **1-2-3** tools · **M / Tab** map · **Esc** pause (the clock stops).
+Controls: **mouse** look (pointer lock; if the browser refuses it, e.g. in a sandboxed iframe, the game falls back to free look: the view follows the mouse and keeps turning at the screen edges) · **WASD** walk · **←→** turn · **Shift** run · **click / E** dig · **1-2-3** tools · **M / Tab** map · **Esc** pause (the clock stops).
 On phones: virtual stick, drag to look, big **ÁS** button.
 
 ## Tech

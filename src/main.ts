@@ -256,7 +256,7 @@ function updateHud(): void {
   });
 }
 
-function showToast(text: string): void {
+function showToast(text: string, durationMs = 2200): void {
   document.querySelectorAll<HTMLElement>('[data-toast]').forEach((toast) => {
     toast.textContent = text;
     toast.classList.add('visible');
@@ -264,7 +264,7 @@ function showToast(text: string): void {
   window.clearTimeout(toastTimer);
   toastTimer = window.setTimeout(
     () => document.querySelectorAll<HTMLElement>('[data-toast]').forEach((t) => t.classList.remove('visible')),
-    2200,
+    durationMs,
   );
 }
 

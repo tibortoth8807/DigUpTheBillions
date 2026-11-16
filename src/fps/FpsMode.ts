@@ -19,7 +19,7 @@ import {
 import { World, buildWorld, tileCenter, worldToTile } from './world';
 
 export interface FpsUi {
-  toast(text: string): void;
+  toast(text: string, durationMs?: number): void;
   refreshHud(): void;
   /** Player pressed "Menü" in the pause screen. */
   exitToMenu(): void;
@@ -65,6 +65,9 @@ export class FpsMode {
   /** 'lock' = classic FPS mouse (pointer lock); 'drag' = fallback when the browser refuses pointer lock. */
   private lookMode: 'lock' | 'drag' = 'lock';
   private dragging = false;
+  /** Cursor position over the canvas (0..1), used for edge-turning in free-look mode. */
+  private pointerX = 0.5;
+  private pointerInside = false;
   private dragDistance = 0;
   private readonly touch = matchMedia('(pointer: coarse)').matches;
 
@@ -200,6 +203,7 @@ export class FpsMode {
 
     if (!this.paused && this.game.status === 'playing') {
       this.move(dt);
+      this.turn(dt);
     }
     this.camera.rotation.set(this.pitch, this.yaw, 0);
 
@@ -238,8 +242,8 @@ export class FpsMode {
     let strafe = 0;
     if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) forward += 1;
     if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) forward -= 1;
-    if (this.keys.has('KeyD') || this.keys.has('ArrowRight')) strafe += 1;
-    if (this.keys.has('KeyA') || this.keys.has('ArrowLeft')) strafe -= 1;
+    if (this.keys.has('KeyD')) strafe += 1;
+    if (this.keys.has('KeyA')) strafe -= 1;
     forward += -this.stick.y;
     strafe += this.stick.x;
 
@@ -271,6 +275,19 @@ export class FpsMode {
     p.x = THREE.MathUtils.clamp(p.x, -world.halfW - 0.9, world.halfW + 0.9);
     p.z = THREE.MathUtils.clamp(p.z, -world.halfD - 0.9, world.halfD + 0.9);
     p.y = EYE_HEIGHT + Math.sin(this.walkPhase) * 0.045;
+  }
+
+  /** Arrow keys turn; in free-look mode holding the cursor near the left/right edge keeps turning. */
+  private turn(dt: number): void {
+    let rate = 0;
+    if (this.keys.has('ArrowLeft')) rate += 1;
+    if (this.keys.has('ArrowRight')) rate -= 1;
+    if (this.lookMode === 'drag' && this.pointerInside && !this.dragging) {
+      const edge = 0.14;
+      if (this.pointerX < edge) rate += (edge - this.pointerX) / edge;
+      else if (this.pointerX > 1 - edge) rate -= (this.pointerX - (1 - edge)) / edge;
+    }
+    this.yaw += rate * 2.2 * dt;
   }
 
   /** The tile under the crosshair (within reach), else the tile the player stands on. */
@@ -683,10 +700,23 @@ export class FpsMode {
       const m = e as MouseEvent;
       if (this.locked) {
         this.look(m.movementX * 0.0022, m.movementY * 0.0022);
-      } else if (this.lookMode === 'drag' && this.dragging) {
-        this.dragDistance += Math.abs(m.movementX) + Math.abs(m.movementY);
-        this.look(m.movementX * 0.004, m.movementY * 0.004);
+      } else if (this.lookMode === 'drag' && !this.pauseVisible) {
+        // free look: the view follows the mouse in real time (no button needed)
+        // clamp: when the cursor (re)enters the window, browsers report one huge jump
+        const dx = THREE.MathUtils.clamp(m.movementX, -60, 60);
+        const dy = THREE.MathUtils.clamp(m.movementY, -60, 60);
+        if (this.dragging) this.dragDistance += Math.abs(dx) + Math.abs(dy);
+        this.look(dx * 0.005, dy * 0.005);
       }
+    });
+
+    this.on(canvas, 'mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      this.pointerX = ((e as MouseEvent).clientX - rect.left) / rect.width;
+      this.pointerInside = true;
+    });
+    this.on(canvas, 'mouseleave', () => {
+      this.pointerInside = false;
     });
 
     this.on(window, 'keydown', (e) => {
@@ -803,7 +833,7 @@ export class FpsMode {
     this.lookMode = 'drag';
     this.root.classList.add('drag-look');
     this.showPause(false);
-    this.ui.toast('🖱️ Körülnézés: húzd az egeret lenyomott gombbal · kattintás: ásás · Esc: szünet');
+    this.ui.toast('🖱️ Az egérrel nézel körül (a képernyő szélén tovább fordul) · kattintás: ásás · ←→ fordulás · Esc: szünet', 6000);
   }
 
   private look(dx: number, dy: number): void {
